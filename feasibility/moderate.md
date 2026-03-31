@@ -1,136 +1,83 @@
 # What's Moderately Hard
 
-These are achievable but require careful implementation and testing. Moderate risk.
+These components are achievable but require careful implementation and testing.
 
 ---
 
-## Three API Integrations with Normalisation
+## TheOddsAPI Integration + Data Pipeline
 
-You're pulling from **TheOddsAPI, Sportradar, and OddsJam** — three different schemas, three different auth methods, three different rate limit models, three different ways of identifying the same event.
+A single API integration is straightforward. The pipeline around it — cron scheduling, normalisation, storage, stale data handling — is where the work lives.
 
-### The Hard Part: Event Matching
+### What's Involved
 
-When TheOddsAPI says "Lakers vs Celtics" and Sportradar says "Los Angeles Lakers at Boston Celtics" and OddsJam says "LAL @ BOS" — you need to reliably match these as the same event to compare odds across sources. There is no universal event ID across providers.
+1. Vercel Cron triggers every ~1 minute
+2. Serverless function calls TheOddsAPI for each active sport
+3. Response normalised: odds converted to both American + decimal, sportsbook names mapped to database IDs
+4. Upserted to Supabase `odds` table (replace stale rows per event + book + market)
+5. Stale odds (>5 min old) flagged and excluded from calculations
+6. Errors logged to Sentry; last-fetch timestamp exposed in admin
 
-### API-Specific Challenges
+### Constraints
 
-**TheOddsAPI** — the easiest:
-- Clean REST API, consistent naming
-- Good documentation
-- Straightforward rate limiting
+- **Vercel function timeout:** 60 seconds on Pro plan. Fetching all sports in a single function invocation may push close to this limit.
+- **Mitigation:** Split into one function per sport group, running in parallel. Each stays well within the timeout.
+- **API rate limits:** TheOddsAPI limits vary by plan. Need to stay within monthly request budget while maintaining ~1 min freshness.
 
-**Sportradar** — complex:
-- Nested XML/JSON responses with proprietary entity IDs
-- Enterprise pricing (potentially expensive)
-- Rich data but over-engineered for this use case
-
-**OddsJam** — designed for their own UI:
-- Data model built for OddsJam's interface, not external consumption
-- May require significant transformation
-- Documentation quality varies
-
-### What Could Go Wrong
-
-- Inconsistent event naming breaks matching logic on edge cases (postponed games, team name changes mid-season)
-- Rate limits force tradeoffs between data freshness and cost
-- API outages on one provider cascading into stale data if fallback logic isn't clean
-
-### Recommendation
-
-**Launch with TheOddsAPI only.** It covers 40+ US sportsbooks and is sufficient for MVP. Add Sportradar and OddsJam as post-launch enhancements when the matching logic has been validated against real data.
-
-**Effort:** TheOddsAPI alone: 3–5 days. All three with normalisation: 10–14 days.
+**Effort:** 3–4 days including error handling and monitoring.
 
 ---
 
-## 1-Minute Data Pipeline
+## Signup Bonus Conversion Engine
 
-Vercel Cron's minimum interval is 1 minute, but there are constraints:
+The math itself is simple (free bet conversion formula). The hard part is domain edge cases.
 
-### Timeout Risk
-
-- Vercel serverless functions timeout at **60 seconds on Pro plan**
-- If you're hitting 3 APIs, normalizing, running calculations, and writing to Supabase — 60 seconds might be tight
-- If one API is slow or times out, the whole pipeline run could fail
-
-### Idempotency
-
-- If the cron fires twice or partially fails, you can't end up with duplicated or corrupted data
-- Upserts (INSERT ON CONFLICT UPDATE) solve this for database writes
-- But if the calculation step runs against incomplete data (only 1 of 3 APIs succeeded), opportunities will be wrong
-
-### Mitigation: Split Pipeline
-
-Break the pipeline into separate functions:
+### The Core Formula
 
 ```
-/api/cron/fetch-theoddsapi    → independent, 15-20s
-/api/cron/fetch-sportradar    → independent, 15-20s
-/api/cron/fetch-oddsjam       → independent, 15-20s
-/api/cron/calculate           → runs after fetches, 20-30s
-/api/cron/generate-cards      → async, only for new opportunities
+free_bet_profit = free_bet_value × (decimal_back_odds - 1)
+hedge_stake = free_bet_profit / decimal_hedge_odds
+guaranteed_profit = free_bet_profit - hedge_stake
 ```
 
-Each function stays well within the 60-second timeout.
+### Edge Cases That Require Careful Handling
 
-**Effort:** 3–5 days including error handling and monitoring.
+| Edge Case | Complexity | How We Handle It |
+| --- | --- | --- |
+| **Free bets don't return stake** | Medium | Different formula from a normal bet — we use the "SNR" (stake not returned) calculation |
+| **Minimum odds requirements** | Low | Filter out opportunities where hedge or back odds fall below the promo's minimum |
+| **Odds format conversion** | Low | Normalise everything to decimal internally, display as American |
+| **Two-way vs three-way markets** | Medium | Moneyline in soccer/hockey has a draw option — need to handle or exclude |
+| **Same-book hedging** | Low | Most promos don't allow hedging on the same book — exclude same-book pairs |
+| **Odds movement between calculation and user action** | N/A (at MVP) | We timestamp opportunities and warn users that odds may have moved. Real-time validation is Phase 2+ |
 
----
+### Domain Knowledge Risk
 
-## Arb / EV Calculation Engine
+If the developer isn't experienced with matched betting mechanics, the calculator may produce wrong numbers in edge cases. Wrong numbers = users lose money.
 
-The math itself is simple (arb formula, free bet conversion, EV calculation). **The hard part is edge cases.**
+**Mitigation:** Build a comprehensive test suite with manually verified expected outputs for at least 20 scenarios. Include standard cases and all known edge cases.
 
-### Domain Knowledge Required
-
-- **Odds formats:** American, decimal, fractional — normalise everything
-- **Vig/juice calculations** for accurate EV
-- **Multi-leg promos:** "Bet $50 on a 3-leg parlay, get $200 in bonus bets" — much more complex math
-- **Different free bet types:** Each has a different conversion formula:
-  - Non-withdrawable free bets (don't return stake)
-  - Bonus cash with rollover (must wager X times before withdrawal)
-  - Odds boosts (percentage vs. fixed amount)
-  - Deposit matches (with varying playthrough requirements)
-  - Second-chance bets (conditional bonus based on loss)
-- **Minimum odds requirements** that constrain which hedges are valid
-
-### The Risk
-
-If you don't deeply understand matched betting mechanics, you'll ship calculators that give wrong numbers. **Wrong numbers = users lose money = platform is dead.**
-
-### Mitigation
-
-- If you're not a matched bettor yourself, find one to QA every calculator and scenario
-- Build comprehensive test suites with known correct outputs
-- Start with the simplest type (free bet conversion) and validate before moving to others
-
-**Effort:** 5–8 days for all calculation types with comprehensive testing.
+**Effort:** 4–5 days including the test suite.
 
 ---
 
-## Azure Entra External ID + Stripe Tier Sync
+## AI Instruction Cards
 
-### The Integration Challenge
+The architecture is sound: calc engine → structured JSON → LLM → validation → cache. The work is in prompt engineering and the validation layer.
 
-You need a clean chain:
-1. User signs up via Azure Entra → user record created in Supabase
-2. Stripe customer created and linked to that user
-3. Subscription changes → webhook → Supabase tier update
-4. RLS policies read tier to gate access
+### What Makes It Moderate (Not Easy)
 
-### Why It's Harder Than It Looks
+1. **Prompt engineering for consistency:** Different promo types and scenarios need consistent, accurate output across thousands of generated cards. Getting the prompts right takes iteration.
 
-- Azure Entra External ID is relatively new (rebranded from Azure AD B2C)
-- Documentation is improving but scattered across multiple Microsoft portals
-- Connecting it cleanly with Stripe and Supabase requires custom middleware
-- No off-the-shelf integration exists
+2. **Validation layer:** Every AI-generated card must be checked against the source data. All dollar amounts, odds, and book names must match exactly. This is a parsing + comparison step that catches hallucinations.
 
-### The Easier Alternative
+3. **Fallback strategy:** When AI fails validation (or the LLM API is down), serve a deterministic template card instead. This template is less readable but always correct.
 
-**Supabase Auth** is built into the database layer:
-- Native Google OAuth
-- Email/password with email verification
-- JWT tokens that RLS policies read automatically
-- Stripe webhook → tier update is simpler because everything lives in Supabase
+4. **Cache key design:** The cache key must capture all inputs that affect the output — if any underlying data changes, the cache must invalidate. Hash the full input JSON.
 
-**Effort with Azure Entra:** 4–6 days. **Effort with Supabase Auth:** 2–3 days.
+### What Makes It NOT Hard
+
+- The AI is doing narration, not calculation. All numbers are pre-computed.
+- Input and output are structured and predictable — not open-ended generation.
+- Caching means we only call the LLM for genuinely new opportunities.
+
+**Effort:** 4–5 days including prompt iteration, validation layer, caching, and fallback.

@@ -1,70 +1,75 @@
 # Investment & Costs
 
-## Upfront Investment
+## Development Cost
 
 | Item | Cost |
 | --- | --- |
-| **Full MVP Build (Fixed Price)** | AUD $15,000 |
-| **Deposit to Start** | AUD $3,000 |
-| **Remaining Balance** | AUD $12,000 (payment schedule TBD) |
+| **MVP build (fixed price)** | AUD $15,000 |
+| **Deposit to start** | AUD $3,000 |
+| **Remaining balance** | AUD $12,000 (payment schedule confirmed at contract signing) |
 
-The fixed price covers everything in the MVP scope (Section 3 of the original proposal). No hourly overruns, no scope-creep surprises. Whitecrow carries the delivery risk.
+This is a **fixed price**. No hourly overruns, no scope creep charges. If it's listed in the MVP Scope, it's included. Whitecrow carries the delivery risk.
 
 ---
 
-## Monthly Operating Costs (Post-Launch)
+## What the Client Pays For Post-Launch (Monthly)
 
-These are ongoing costs the client bears after the platform is live.
+Once the platform is live, the client is responsible for all third-party service subscriptions. These are paid directly to each provider — Whitecrow does not markup or resell.
 
-### Proposed Estimates
-
-| Service | Low / month | High / month | Notes |
+| Service | What It Does | Low Estimate | High Estimate |
 | --- | --- | --- | --- |
-| Vercel Pro (hosting + CDN + serverless) | AUD $20 | AUD $150 | Auto-scales with traffic |
-| Supabase Pro (managed database) | AUD $25 | AUD $100 | Managed Postgres + real-time |
-| TheOddsAPI (primary odds data feed) | AUD $150 | AUD $300 | 40+ US sportsbooks |
-| LLM API — Claude or OpenAI (AI engine) | AUD $50 | AUD $200 | Cached outputs reduce cost |
-| Azure Entra External ID (auth) | AUD $0 | AUD $30 | Free to 50,000 MAU |
-| Upstash Redis + Resend + Sentry | AUD $15 | AUD $60 | Cache, email, monitoring |
-| Stripe processing fees | 2.9% + 30c per txn | — | Scales with revenue |
-| **TOTAL** | **~AUD $285** | **~AUD $890** | |
+| **Vercel Pro** | Hosting, CDN, serverless functions, cron jobs | $20/month | $150/month |
+| **Supabase Pro** | Managed PostgreSQL database | $25/month | $100/month |
+| **TheOddsAPI** | Real-time odds from 40+ US sportsbooks | $150/month | $300/month |
+| **LLM API (Claude or OpenAI)** | AI instruction card generation | $50/month | $200/month |
+| **Firecrawl** | Sportsbook promo page scraping | $30/month | $100/month |
+| **Upstash Redis** | Caching + rate limiting | $5/month | $20/month |
+| **Resend** | Email delivery | $0/month | $20/month |
+| **Sentry** | Error monitoring | $0/month | $30/month |
+| **Stripe** | Payment processing | 2.9% + 30c/txn | — |
+| **TOTAL (excl. Stripe)** | | **~AUD $300/month** | **~AUD $600/month** |
 
-### Costs Not Reflected in the Proposal
+### What Drives Cost Up
 
-| Service | Estimated Cost | Notes |
-| --- | --- | --- |
-| **Sportradar API** | AUD $500–$2,000+/month | Enterprise pricing; clarify before committing |
-| **OddsJam API** | AUD $150–$300/month | Separate subscription required |
-| **Firecrawl** | AUD $30–$100/month | Scraping service pricing |
-| **Domain + DNS** | AUD $15–$30/year | Negligible |
-| **Legal review** (one-time) | AUD $3,000–$8,000 | US gambling law specialist |
+- **TheOddsAPI** is the biggest line item. Cost scales with the number of API requests. More sports covered = more requests = higher cost. The $150–$300 range covers typical MVP usage.
+- **LLM API** costs are kept flat by the Redis caching layer. Without caching, 1,000 users would cost ~$500/month. With caching, 1,000 users costs the same ~$50–$80/month because the same opportunity generates the same card for everyone.
+- **Vercel** scales with traffic. At MVP volumes (hundreds of users), $20–$40/month is typical. At scale (tens of thousands), it can reach $150+.
 
-### Realistic Monthly Costs
+### What the Client Does NOT Need to Pay For
 
-| Scenario | Monthly Cost |
+| Service | Why Not |
 | --- | --- |
-| **MVP launch (1 API, minimal AI usage)** | AUD $300–$500/month |
-| **Growing (3 APIs, moderate traffic)** | AUD $800–$1,500/month |
-| **Scale (10,000+ users, all features)** | AUD $1,500–$3,000/month |
+| **Sportradar** | Not used in MVP — TheOddsAPI is sufficient |
+| **OddsJam** | Not used in MVP — TheOddsAPI is sufficient |
+| **Any server/VPS/cloud hosting** | Everything runs on serverless — no servers to manage |
+| **Database administrator** | Supabase is fully managed |
+| **DevOps tooling** | Vercel handles CI/CD automatically |
 
-### Break-Even Analysis
+---
 
-Assuming Basic plan at $49/month (AUD ~$75):
+## Break-Even Analysis
+
+Assuming Basic tier at AUD $49/month and monthly opex of AUD $450/month (mid-range):
 
 | Monthly Opex | Subscribers to Break Even |
 | --- | --- |
-| AUD $500 | ~7 subscribers |
-| AUD $1,000 | ~14 subscribers |
-| AUD $1,500 | ~20 subscribers |
+| AUD $300 (low) | **7 subscribers** |
+| AUD $450 (mid) | **10 subscribers** |
+| AUD $600 (high) | **13 subscribers** |
 
-The unit economics are strong. Even at the high end of costs, break-even is achievable with a small subscriber base.
+At 50 subscribers on the Basic plan: **AUD $2,450/month revenue** minus ~$500/month costs = **~AUD $1,950/month profit**.
+
+At 200 subscribers: **AUD $9,800/month revenue** minus ~$800/month costs = **~AUD $9,000/month profit**.
+
+The unit economics are strong. Costs scale slowly (caching keeps AI flat, single API poll serves all users), while revenue scales linearly with subscribers.
 
 ---
 
-## Cost Optimisation Strategies
+## One-Time Costs (Client's Responsibility, Not Included in Build)
 
-1. **Start with one API** (TheOddsAPI) — saves $650–$2,300/month on Sportradar + OddsJam
-2. **Use Supabase Auth** instead of Azure Entra — saves complexity, functionally equivalent
-3. **Aggressive AI caching** — keeps LLM costs flat regardless of user count
-4. **Manual Offer Library at launch** — avoids Firecrawl cost and maintenance burden
-5. **Annual API subscriptions** — most providers offer discounts for annual commitment
+| Item | Estimated Cost | Notes |
+| --- | --- | --- |
+| **Domain name** | $15–$30/year | Client purchases their own domain |
+| **US gambling law review** | $3,000–$8,000 one-time | Recommended before launch — covers scraping legality + state advertising compliance |
+| **Copywriting** (if needed) | $1,000–$3,000 one-time | If client needs professional help writing website copy |
+| **Brand design** (if needed) | $500–$2,000 one-time | If client doesn't have logo/brand assets |

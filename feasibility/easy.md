@@ -1,80 +1,84 @@
-# What's Easy (Standard Work)
+# What's Straightforward
 
-These are solved problems with well-documented patterns. Low risk, predictable effort.
+These components use well-established patterns with excellent documentation. Low risk, predictable effort.
 
 ---
 
 ## Public Website — Next.js Marketing Pages
 
-Standard marketing site work. Nothing unusual.
+5–7 pages built with Next.js App Router, Tailwind CSS, and shadcn/ui components.
 
-- Next.js SSR/SSG for SEO is built-in
-- Tailwind CSS for responsive design across breakpoints
-- Component libraries (shadcn/ui) provide pre-built UI primitives
-- SEO meta tags, Open Graph, sitemap.xml are well-documented patterns
-- Contact form → email is a trivial integration
+- Server-side rendering for SEO is built into Next.js
+- Responsive design across mobile/tablet/desktop with Tailwind breakpoints
+- SEO meta tags, Open Graph, and sitemap.xml are standard patterns
+- Contact form → email via Resend is trivial
 
-**Effort:** 3–5 days after designs are approved.
+**Effort:** 3–4 days after designs are approved and client provides copy.
 
-## Stripe Billing + Webhooks
+## Supabase Auth
+
+Email + password signup, Google OAuth, email verification, and password reset — all handled by Supabase Auth with no custom auth code.
+
+- Native integration with Supabase database — JWT tokens work with RLS automatically
+- Google OAuth is a configuration step, not custom development
+- Password reset and email verification are built-in flows
+
+**Effort:** 1–2 days.
+
+## Stripe Billing
 
 One of the best-documented integrations in the ecosystem.
 
-- Stripe Checkout creates hosted payment pages (no custom form needed)
-- Stripe Customer Portal handles subscription management
-- Webhook handling is well-documented with official libraries
-- Tier sync (webhook → Supabase update) is a standard pattern
+- Stripe Checkout creates hosted payment pages (no custom payment form)
+- Stripe Customer Portal handles subscription management out of the box
+- Webhook handling: well-documented, official Node.js library
+- Tier sync (webhook → Supabase user.tier update) is a standard pattern
 
 **Effort:** 2–3 days including testing all flows (subscribe, upgrade, downgrade, cancel, payment failure).
 
-## User Profile / Onboarding / Account Pages
+## User Account & Profile Pages
 
 Standard CRUD operations against the users table.
 
-- Onboarding wizard: 3-step form → save to Supabase
-- Account page: read/write user profile fields
+- Account page: display and edit user preferences
 - Notification preferences: boolean toggles → save to Supabase
-- Nothing technically challenging
+- Billing page: embed Stripe Customer Portal
+
+**Effort:** 1–2 days.
+
+## Admin Panel
+
+Simple internal-only area: user list with search, manual promotion entry, platform health indicators.
+
+- Same Next.js + Supabase stack
+- Protected by admin role check
+- No complex UI requirements
 
 **Effort:** 2–3 days.
 
-## Vercel Deployment + CI/CD
+## Email System
+
+Resend SDK + React Email templates.
+
+- Install, configure, create JSX templates, send
+- 7 email types (welcome, verification, subscription events, daily digest)
+- React Email provides pre-built components for responsive email layout
+
+**Effort:** 1–2 days.
+
+## Vercel Deployment
 
 Near-zero configuration.
 
-- Connect GitHub repo to Vercel
-- Push to `main` → automatic production deploy
-- Push to branches → automatic preview deploys
-- Environment variables managed in Vercel dashboard
+- Connect GitHub repo → automatic deploys on push
+- Environment variables in Vercel dashboard
 - SSL/HTTPS automatic
+- Cron jobs configured in vercel.json
 
-**Effort:** 1–2 hours.
-
-## Resend Email Integration
-
-Trivial integration.
-
-- Install Resend SDK
-- Create React Email templates (JSX → HTML email)
-- Send emails via `resend.emails.send()`
-- Verify domain in Resend dashboard
-
-**Effort:** 1–2 days including all templates.
-
-## Admin Panel (Basic Version)
-
-A simple internal-only area with:
-- User list with search
-- Subscription overview / MRR counter
-- Manual promotion entry form
-- API health status
-
-Using the same Next.js + Supabase stack, this is standard CRUD with no special requirements.
-
-**Effort:** 2–3 days for a functional admin panel.
+**Effort:** 2–3 hours.
 
 ---
 
-## Total Estimate for "Easy" Work
+## Total for Straightforward Work
 
-**~12–18 days** of development. This accounts for roughly 30–40% of the total project effort, and carries almost no technical risk.
+**~11–17 days.** This is roughly 40% of the total MVP effort and carries minimal technical risk.

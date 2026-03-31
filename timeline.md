@@ -1,111 +1,76 @@
 # Development Timeline
 
-## Proposed Timeline: 5–7 Weeks (6 Sprints)
+## 6–7 Weeks — Sprint by Sprint
 
-| Sprint | Week | Deliverables | Milestone |
+| Sprint | Week | What We Deliver | Client Action Required |
 | --- | --- | --- | --- |
-| **1** | 1 | Architecture finalised, Supabase schema live, API accounts provisioned, Vercel project setup, Figma design system and all screens begun | Architecture sign-off |
-| **2** | 2 | UI/UX designs approved, public website live on staging, auth live, Stripe billing with all 3 tiers integrated, DB-level tier access control | Design + auth sign-off |
-| **3** | 3 | Data pipeline live, all 3 API integrations normalised and flowing to Supabase, arb/EV calculation engine operational, data quality validated | Data pipeline live |
-| **4** | 4 | LLM API integration and AI opportunity cards live, full user portal built (dashboard, finder, offer library, calculators, profile, onboarding), admin panel | Beta ready |
-| **5** | 5 | QA, cross-browser testing, billing flow validation, email flows end-to-end, performance optimisation, security review, staging sign-off | QA complete |
-| **6** | 6 | DNS cutover to custom domain, SSL live, Sentry and analytics configured, full credential handover, production launch | Production launch |
+| **1** | 1 | Project scaffolding: Next.js project on Vercel, Supabase database with full schema, Stripe products/prices configured, TheOddsAPI account connected, Figma design system + all page mockups started | Provide brand assets + website copy if not already submitted |
+| **2** | 2 | UI/UX designs complete and submitted for approval. Public website built and deployed to staging. Supabase Auth live (signup, login, Google OAuth, email verification, password reset). Stripe billing integrated (checkout, webhooks, customer portal, all 3 tiers). | **Approve designs** (development on portal pages waits for this). Review staging site. |
+| **3** | 3 | TheOddsAPI data pipeline live and refreshing every ~1 min. Odds data flowing to Supabase for all major US sports. Signup bonus conversion engine operational — scanning all events, calculating optimal hedges, writing opportunities to database. Firecrawl scraping configured for DraftKings, FanDuel, BetMGM, Caesars. | Review data quality on staging. Flag any promos that look incorrect. |
+| **4** | 4 | Full user portal built: dashboard with AI opportunity cards, offer library, free bet calculator, account page, billing page. AI integration live with validation and caching. Admin panel built: user list, offer management, platform health. | **Test the full portal on staging.** Report bugs and feedback. |
+| **5** | 5–6 | QA sprint: cross-browser testing (Chrome, Firefox, Safari, Edge), responsive testing (mobile/tablet/desktop), full billing flow testing (subscribe, upgrade, downgrade, cancel, payment failure), email flow testing, data pipeline reliability validation, security review, performance optimisation. | **Final staging review and pre-launch sign-off.** |
+| **6** | 6–7 | DNS cutover to custom domain, SSL live, Sentry + Vercel Analytics configured, final smoke testing, **production launch**. Full credential handover. Source code in client's GitHub. 30-day bug warranty begins. | **Approve go-live.** |
 
 ---
 
-## Feasibility Assessment Per Sprint
+## What Happens at Each Milestone
 
-### Sprint 1 (Week 1) — Architecture + Setup ✅ FEASIBLE
+### Week 2: Design Sign-Off
 
-- Standard project scaffolding
-- Database schema is well-defined (see Database Schema section)
-- API account provisioning is admin work, not development
-- Design system can begin in parallel
+We submit Figma mockups for every page (public site + portal + admin). The client reviews, requests changes, and formally approves.
 
-**Verdict:** Achievable in 1 week.
+**Why this matters:** Portal development (Weeks 3–4) depends on approved designs. Every day of design review delay pushes the timeline back by a day.
 
-### Sprint 2 (Week 2) — Design + Auth + Billing ⚠️ TIGHT
+**Our commitment:** Designs submitted by end of Week 2.\
+**Client commitment:** Feedback within 2 business days. Final approval within 3 business days.
 
-- Design approval in 1 week requires a responsive client — if design review takes 3+ days, development stalls
-- Auth integration (Azure Entra) is 4–6 days of work. With Supabase Auth, it's 2–3 days.
-- Stripe billing (products, checkout, webhooks, portal) is 2–3 days
-- Public website requires approved designs first
+### Week 4: Staging Review
 
-**Verdict:** Achievable IF using Supabase Auth and designs are approved quickly. Tight with Azure Entra.
+The full platform is deployed to a staging URL. The client can:
+- Sign up, log in, view the dashboard
+- See live opportunity cards generated from real odds data
+- Test the free bet calculator
+- Browse the offer library
+- Subscribe via Stripe (test mode)
+- Access the admin panel
 
-### Sprint 3 (Week 3) — Data Pipeline + 3 APIs ❌ OVERLOADED
+**Our commitment:** Full functional staging build by end of Week 4.\
+**Client commitment:** Thorough testing and bug reports within 3 business days.
 
-- TheOddsAPI integration: 2–3 days
-- Sportradar integration: 3–4 days (complex responses)
-- OddsJam integration: 2–3 days
-- Event matching / normalisation across all three: 3–5 days
-- Calculation engine: 5–8 days
-- **Total: 15–23 days of work in a 5-day sprint**
+### Week 6: Pre-Launch Sign-Off
 
-**Verdict:** Not achievable as specified. Realistic options:
-- Ship with TheOddsAPI only (5–7 days) — **recommended**
-- Extend to 2–3 weeks for all three APIs
+All bugs from staging review are resolved. Final version deployed to staging for sign-off.
 
-### Sprint 4 (Week 4) — Portal + AI + Admin ❌ OVERLOADED
+**Our commitment:** All reported bugs fixed. Platform ready for production.\
+**Client commitment:** Formal sign-off that the platform is ready to go live.
 
-- 6–10 portal pages with complex components: 8–12 days
-- AI integration + prompt engineering + validation: 5–8 days
-- Admin panel: 2–3 days
-- **Total: 15–23 days of work in a 5-day sprint**
+### Week 7: Launch
 
-**Verdict:** Not achievable as specified. This sprint needs 2–3 weeks.
+DNS cutover, production deployment, monitoring configured, credentials handed over.
 
-### Sprint 5 (Week 5) — QA ✅ FEASIBLE
-
-- Cross-browser testing
-- Billing flow validation (all upgrade/downgrade/cancel paths)
-- Email flow testing
-- Performance optimisation
-- Security review
-
-**Verdict:** 1 week is sufficient for focused QA on an MVP.
-
-### Sprint 6 (Week 6) — Launch ✅ FEASIBLE
-
-- DNS cutover, SSL, monitoring setup
-- Credential handover
-- Documentation
-
-**Verdict:** Standard launch activities, achievable in a few days.
+**Our commitment:** Platform live and operational.\
+**Client commitment:** Confirm domain DNS access. Approve go-live.
 
 ---
 
-## Realistic Timeline
+## What Could Delay the Timeline
 
-### Option A: Full Scope (8–10 weeks)
+| Risk | Impact | How We Mitigate |
+| --- | --- | --- |
+| **Slow design approval** | Every day of delay = one day added to timeline | We submit designs early in Week 2 and schedule a review call |
+| **Late website copy** | Public site can't go to staging without content | We provide a copy brief in Week 1 with a clear deadline |
+| **Sportsbook page redesign during build** | Scraper for that book breaks, needs rebuild | We build manual entry as primary fallback from day 1 |
+| **TheOddsAPI outage or rate limit change** | Data pipeline temporarily unavailable | Pipeline has error handling and graceful degradation |
+| **Scope change requests** | New features not in MVP scope require re-estimation | Any scope additions are quoted separately and explicitly agreed before work begins |
 
-| Week | Focus |
-| --- | --- |
-| 1 | Architecture, schema, setup, design system |
-| 2 | Design approval, auth integration, Stripe billing |
-| 3 | TheOddsAPI integration, data pipeline, start calc engine |
-| 4 | Sportradar + OddsJam integration, event matching, complete calc engine |
-| 5 | User portal (dashboard, finder, offer library) |
-| 6 | Portal (calculators, account, billing), AI integration, admin panel |
-| 7 | AI prompt engineering, email system, Offer Library scraping |
-| 8 | QA, testing, performance |
-| 9 | Bug fixes, staging sign-off |
-| 10 | Production launch + handover |
+---
 
-### Option B: Descoped MVP (6–7 weeks) — RECOMMENDED
+## Post-Launch: 30-Day Bug Warranty
 
-| Week | Focus |
-| --- | --- |
-| 1 | Architecture, schema, setup, design system |
-| 2 | Design approval, Supabase Auth, Stripe billing, public website |
-| 3 | TheOddsAPI integration, data pipeline, calculation engine |
-| 4 | User portal (dashboard, finder, calculators, account) |
-| 5 | AI integration, manual Offer Library, email system, admin panel |
-| 6 | QA, testing, bug fixes |
-| 7 | Production launch + handover |
+From launch day, any bugs in the delivered MVP features (as defined in the Deliverables & Acceptance Criteria section) are fixed at no additional cost.
 
-**Descoped items added post-launch:**
-- Sportradar + OddsJam integrations
-- Automated Offer Library scraping
-- Advanced admin panel features
-- Multi-leg/parlay calculations
+**Starts:** Launch day\
+**Ends:** 30 calendar days after launch\
+**Scope:** Bugs in delivered features only — not feature requests, not scraper maintenance due to sportsbook changes, not third-party service outages
+
+After the warranty period, ongoing development and maintenance can be covered by a separate retainer agreement.

@@ -1,58 +1,71 @@
 # Executive Summary
 
-## US Sports Betting Insights Platform — Full Feasibility Report
+## US Sports Betting Insights Platform
 
-**Prepared for:** Alex Dowling\
-**Prepared by:** Whitecrow Development Team\
-**Date:** March 2026
+**Prepared by:** Whitecrow Development\
+**Prepared for:** \[Client Name]\
+**Date:** March 2026\
+**Document type:** MVP Development Proposal & Feasibility Report
 
 ---
 
-## What Is This Platform?
+## What We Are Building
 
-A US-based subscription SaaS platform targeting the **sports betting bonus harvesting and matched betting market**. The platform aggregates real-time odds and promotional data from US sportsbooks, applies AI-driven analysis to surface high-value matched betting and bonus conversion opportunities, and delivers curated insights to subscribers via a secure, tiered-access dashboard.
+A subscription-based web platform that helps US sports bettors **convert sportsbook sign-up bonuses into guaranteed cash**. The platform pulls real-time odds data, identifies the mathematically optimal hedge bets for each bonus, and delivers plain-English instructions telling users exactly what to bet, where, and for how much.
 
-**This is not a tipster or bet-picking platform.** It does not predict winners. Instead, it finds mathematically guaranteed (or near-guaranteed) profit opportunities that arise from sportsbook sign-up bonuses, free bets, deposit matches, and odds boosts.
+**This is not a tipster platform.** It does not predict winners. It uses pure mathematics to extract guaranteed or near-guaranteed value from sportsbook promotions.
+
+## What's Included in the MVP (AUD $15,000)
+
+For the fixed development price, we deliver a working, launched product that:
+
+| We Build | Detail |
+| --- | --- |
+| **Odds data pipeline** | Real-time odds from TheOddsAPI (~40 US sportsbooks), refreshed every ~1 minute |
+| **Sportsbook promo scraping** | Automated scraping of **4 major sportsbooks** (DraftKings, FanDuel, BetMGM, Caesars) for active sign-up bonus offers |
+| **Signup bonus conversion engine** | Calculation engine that finds the optimal hedge bet to convert each sign-up free bet into cash |
+| **AI instruction cards** | Plain-English, step-by-step instructions for every opportunity — powered by LLM with validation and caching |
+| **3-tier subscription system** | Free / Basic / Premium tiers with Stripe billing, webhook-driven access control, and database-level gating |
+| **Public marketing website** | 5–7 SEO-optimised pages (Home, How It Works, Pricing, FAQ, Blog template, Contact) |
+| **User portal** | Authenticated dashboard, opportunity feed, offer library, free bet calculator, account management |
+| **Admin panel** | Internal tool for user management, manual offer entry/override, and platform health monitoring |
+| **Email system** | Welcome, billing, and daily digest emails via Resend |
+| **Production deployment** | Live on Vercel with custom domain, SSL, monitoring, and full credential handover |
+
+## What's NOT in the MVP (Phase 2+)
+
+| Feature | Why It's Phase 2 |
+| --- | --- |
+| Additional odds APIs (Sportradar, OddsJam) | Not needed for launch — TheOddsAPI covers 40+ books |
+| Scraping beyond 4 sportsbooks | Diminishing returns; each book is custom work |
+| Personalised bonus conversion (user's specific books/state auto-filters) | Requires onboarding flow + profile-based filtering logic |
+| Deposit match, odds boost, second chance bet calculations | Each is a separate calculation type with different math |
+| Real-time high-value alerts (push/email) | Requires event-driven infrastructure |
+| Native mobile apps | Responsive web covers mobile at launch |
+| Community features, leaderboards | Retention features for post-traction |
+
+Phase 2+ development is scoped and quoted separately after launch.
 
 ## Key Numbers
 
 | Metric | Value |
 | --- | --- |
-| **Fixed Build Price** | AUD $15,000 |
-| **Estimated Timeline** | 5–7 weeks (realistic: 8–10 weeks) |
-| **Monthly Operating Costs** | AUD $285–$890/month at MVP scale |
-| **Target Market** | 38 US legal sports betting states |
-| **Revenue Model** | Tiered SaaS subscriptions (Free / Basic / Premium) |
-| **Comparable Products** | OddsJam, DarkHorse Odds, Pikkit, BonusFinder |
+| **Fixed development price** | AUD $15,000 |
+| **Deposit to start** | AUD $3,000 |
+| **Estimated timeline** | 6–7 weeks |
+| **Monthly running costs (client's responsibility)** | AUD $300–$600/month |
+| **Target market** | 38 US legal sports betting states |
+| **Revenue model** | SaaS subscriptions via Stripe |
 
-## The Core Loop
+## How It Works — Concrete Example
 
-1. **Ingest odds** — Pull real-time odds from every US sportsbook via API every ~1 minute
-2. **Ingest promos** — Scrape/catalog what bonuses each sportsbook is currently offering in each state
-3. **Find opportunities** — For each bonus, the calculation engine finds the optimal hedge bet that converts the bonus into real cash with minimal risk
-4. **Generate instructions** — AI writes plain-English step-by-step instructions telling the user exactly what to do
-5. **Serve to users** — Filtered by their state, their sportsbook accounts, and their subscription tier
-
-## Concrete Example
-
-> DraftKings is offering: **"Sign up, bet $5, get $200 in bonus bets"** in New York.
+> DraftKings is offering: **"Sign up, bet $5, get $200 in bonus bets"**
 >
-> The system:
-> 1. Knows this promo exists (Offer Library)
+> The platform:
+> 1. Knows this promo exists (scraped from DraftKings promo page)
 > 2. Finds that the Lakers are +130 on DraftKings and the Celtics are -125 on FanDuel
-> 3. Calculates: place the $200 free bet on Lakers at +130 on DraftKings, hedge with $148 on Celtics at -125 on FanDuel
-> 4. Result: no matter who wins, the user walks away with ~$112 profit
-> 5. AI generates a card: "Here's exactly what to do, step by step..."
+> 3. Calculates: place the $200 free bet on Lakers at +130, hedge with $148 on Celtics at -125 on FanDuel
+> 4. Result: **no matter who wins, the user profits ~$112**
+> 5. AI generates a step-by-step card: "Open DraftKings → NBA → Lakers vs Celtics → place $200 free bet on Lakers Moneyline at +130..."
 
-The user does the actual betting. The platform just tells them what to do.
-
-## Overall Feasibility Verdict
-
-**This is a feasible project.** The tech stack is modern and appropriate, the architecture is well-designed, and the market is validated by existing competitors. The biggest risks are:
-
-- **Offer Library scraping** — fragile, high maintenance, legally grey
-- **Three-API event matching** — unglamorous plumbing that eats weeks
-- **AI accuracy validation** — the gap between "nice-sounding" and "correct, actionable" is wider than it looks
-- **Timeline** — 5–7 weeks is aggressive; 8–10 weeks is realistic
-
-Full analysis follows in this report.
+The user does the actual betting. We tell them exactly what to do.

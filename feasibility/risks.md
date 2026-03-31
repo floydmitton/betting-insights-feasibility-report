@@ -1,90 +1,48 @@
-# What May Not Be Doable In Scope
+# Risks & Mitigations
 
-These items are specified in the proposal but may need to be descoped or deferred based on practical constraints.
-
----
-
-## Risk Matrix
-
-| Item | Proposed | Risk | Realistic Outcome |
-| --- | --- | --- | --- |
-| Reliable scraping of 10+ sportsbooks at launch | Full automated Offer Library | HIGH | Launch with 3–4 books + manual entry |
-| All 3 API integrations normalised in Week 3 | Single sprint | HIGH | Launch with TheOddsAPI only; add others post-launch |
-| 1-minute refresh that's truly reliable | Vercel Cron + serverless | MEDIUM | Acceptable for MVP; not production-grade real-time |
-| Full admin panel in same sprint as entire portal | Week 4 | MEDIUM | Admin panel gets minimal version; enhanced post-launch |
-| Multi-leg / parlay promo calculations | Implied in calculator tools | HIGH | Defer to post-MVP; focus on single-bet promos |
+Every risk in the MVP build, how likely it is, and exactly how we handle it.
 
 ---
 
-## Detailed Risk Analysis
+## Technical Risks
 
-### Scraping Reliability at Scale
+| # | Risk | Severity | Likelihood | Mitigation |
+| --- | --- | --- | --- | --- |
+| T1 | **Scraper breaks after launch** due to sportsbook page redesign | Medium | HIGH (will happen) | Manual admin entry is a first-class feature. Admin health dashboard flags broken scrapers immediately. |
+| T2 | **AI hallucinates** incorrect stake amounts or book names | High | Medium | Validation layer checks every AI output against source data. Falls back to deterministic template if validation fails. |
+| T3 | **Vercel cron timeout** — pipeline function exceeds 60 seconds | Medium | Low | Pipeline split into parallel functions per sport group, each well within timeout. |
+| T4 | **TheOddsAPI rate limit** exceeded or API goes down | Medium | Low | Pipeline has error handling and graceful degradation. Dashboard serves cached data. Stale data is flagged, not served as fresh. |
+| T5 | **Odds move between calculation and user action** | Medium | HIGH (inherent to the product) | Every opportunity card shows a timestamp. Users are warned that odds may have moved. Real-time validation is Phase 2+. |
+| T6 | **Free bet conversion formula error** in an edge case | High | Low | Comprehensive test suite with 20+ manually verified scenarios. Domain expert QA recommended before launch. |
 
-**Proposed:** Firecrawl scrapes all major sportsbook promo pages automatically.
+## Business / Operational Risks
 
-**Reality:** Each sportsbook is a separate engineering problem. DraftKings promos are structured differently from FanDuel, which is different from BetMGM, which is different from Caesars. Each requires custom extraction logic, and each will break when the sportsbook redesigns (which happens frequently).
+| # | Risk | Severity | Likelihood | Mitigation |
+| --- | --- | --- | --- | --- |
+| B1 | **Sportsbook scraping legality** — books may send C&D | Medium | Low-Medium | Legal review recommended pre-launch. Manual entry fallback means scraping is a convenience, not a dependency. |
+| B2 | **Client provides copy/assets late** — delays design and public site | Medium | Medium | We provide a copy brief and deadlines in Week 1. Clear in the Responsibilities Matrix that delays are on the client. |
+| B3 | **Design approval takes too long** — delays portal development | High | Medium | Designs submitted early in Week 2. Review call scheduled. Clear SLA: feedback within 2 business days. |
+| B4 | **Scope creep during build** — client requests features not in MVP | Medium | Medium | MVP scope is exhaustively documented. Any additions are quoted separately before work begins. |
+| B5 | **Sportsbooks restrict matched bettors** — users get account limited | Medium | HIGH (industry-wide) | This is a market risk, not a tech risk. Should be disclosed to users in ToS and FAQ. Not our responsibility, but we should set expectations. |
 
-**Recommendation:** Descope to manual entry with automated scraping as a bonus. Budget ongoing developer time for scraper maintenance.
+## What We're NOT Worried About
 
-### Three APIs in One Sprint
+| Non-Risk | Why |
+| --- | --- |
+| **Auth security** | Delegated to Supabase Auth — battle-tested, no custom auth code |
+| **Payment security** | Delegated to Stripe — PCI compliance is Stripe's responsibility |
+| **Database access control** | Row Level Security at Supabase enforces tier gating at the database layer |
+| **Scalability at MVP** | Serverless architecture auto-scales. This doesn't need to handle 100k users on day 1. |
+| **Single API integration** | TheOddsAPI is well-documented with stable endpoints. No event matching complexity (that's Phase 2+). |
 
-**Proposed:** Week 3 delivers all three API integrations (TheOddsAPI, Sportradar, OddsJam) normalised and flowing.
+## Risk Ownership
 
-**Reality:** Each integration is 2–4 days of work. Event matching across all three is an additional 3–5 days. That's 9–17 days of work in a 5-day sprint.
-
-**Recommendation:** Ship with TheOddsAPI only. It covers 40+ US sportsbooks and is sufficient for a compelling MVP. Add Sportradar and OddsJam iteratively.
-
-### Vercel Cron Reliability
-
-**Proposed:** 1-minute data pipeline via Vercel Cron.
-
-**Reality:** Vercel Cron is reliable for most cases, but:
-- No guaranteed exactly-once execution
-- Function timeout at 60 seconds limits pipeline complexity
-- No built-in retry on failure
-- No built-in dead-letter queue for failed executions
-
-**For MVP:** Acceptable. The platform serves cached data, so a missed pipeline run means data is 2 minutes stale instead of 1. Users won't notice.
-
-**For scale:** May need to migrate to a dedicated job scheduler (e.g., Inngest, Trigger.dev, or a separate worker service).
-
-### Admin Panel Scope
-
-**Proposed:** Full admin panel with user management, subscription visibility, manual offer entry, and platform metrics — built in the same week as the entire user portal.
-
-**Reality:** Something will get cut. The portal has 6–10 pages of authenticated UI, the AI integration, and the dashboard. Adding a full admin panel in the same sprint is unrealistic.
-
-**Recommendation:** Build a minimal admin panel (user list + manual offer entry) and enhance it post-launch.
-
-### Multi-Leg Promo Calculations
-
-**Proposed:** Implied in the scope under "the specific bonus types covered will be confirmed at kickoff."
-
-**Reality:** Multi-leg (parlay) promotions are exponentially more complex to calculate:
-- A 3-leg parlay has hundreds of possible outcome combinations
-- Hedging a parlay requires multiple individual bets on opposing outcomes
-- The calculation engine needs to evaluate all permutations to find optimal hedges
-- Most multi-leg promos have minimum odds per leg, further constraining the search space
-
-**Recommendation:** Explicitly exclude multi-leg/parlay calculations from MVP. Focus on single-event opportunities (moneyline, spread, total). Multi-leg support is a genuine Phase 2 feature.
-
----
-
-## Timeline Comparison
-
-| Phase | Proposed | Realistic (All Features) | Realistic (Descoped MVP) |
-| --- | --- | --- | --- |
-| Architecture + setup | 1 week | 1 week | 1 week |
-| Design + auth + billing | 1 week | 1.5–2 weeks | 1.5 weeks |
-| Data pipeline + APIs | 1 week | 2–2.5 weeks | 1 week (1 API) |
-| Portal + AI + admin | 1 week | 2–3 weeks | 2 weeks |
-| QA + launch | 1–2 weeks | 1–2 weeks | 1 week |
-| **Total** | **5–7 weeks** | **8–10 weeks** | **6–7 weeks** |
-
-## Key Takeaway
-
-The proposal scope is achievable, but not in the proposed timeline with all features at full fidelity. The choice is:
-
-1. **Full scope, longer timeline** (8–10 weeks)
-2. **Descoped MVP, original timeline** (6–7 weeks) — recommended
-3. **Full scope, original timeline** — high risk of quality issues and tech debt
+| Category | Owner |
+| --- | --- |
+| Technical bugs in delivered code | **Whitecrow** (covered by 30-day warranty) |
+| Scraper maintenance after launch | **Client** (or separate Whitecrow retainer) |
+| Third-party API outages (TheOddsAPI, Stripe, Supabase) | **Client** (we build error handling, but can't control uptime of external services) |
+| Legal compliance (gambling regs, advertising, scraping) | **Client** (we recommend legal review; we don't provide legal advice) |
+| Content creation (copy, blog posts) | **Client** |
+| Marketing and user acquisition | **Client** |
+| Monthly service costs | **Client** (paid directly to each provider) |
